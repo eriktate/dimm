@@ -30,13 +30,6 @@ impl Vec2 {
         Vec2 { x, y }
     }
 
-    pub fn from_ints(x: i32, y: i32) -> Vec2 {
-        Vec2 {
-            x: x as f32,
-            y: y as f32,
-        }
-    }
-
     pub fn dot(&self, rhs: &Vec2) -> f32 {
         self.x * rhs.x + self.y * rhs.y
     }
@@ -152,14 +145,6 @@ impl From<Vec4> for Vec2 {
 impl Vec3 {
     pub fn new(x: f32, y: f32, z: f32) -> Vec3 {
         Vec3 { x, y, z }
-    }
-
-    pub fn from_ints(x: i32, y: i32, z: i32) -> Vec3 {
-        Vec3 {
-            x: x as f32,
-            y: y as f32,
-            z: z as f32,
-        }
     }
 
     pub fn cross(self, rhs: Vec3) -> Vec3 {
@@ -280,8 +265,6 @@ impl<T: From<Vec4> + Into<Vec4>> ops::Mul<T> for Mat4 {
     type Output = T;
     fn mul(self, rhs: T) -> Self::Output {
         let vec = rhs.into();
-        println!("RHS: {:?}", vec);
-        println!("X: {}", self.row(0).dot(&vec));
 
         T::from(Vec4::new(
             self.row(0).dot(&vec),
@@ -338,8 +321,8 @@ mod tests {
 
     #[test]
     fn test_vector2() {
-        let lhs = Vec2::from_ints(1, 2);
-        let rhs = Vec2::from_ints(3, 5);
+        let lhs = Vec2::new(1.0, 2.0);
+        let rhs = Vec2::new(3.0, 5.0);
         let added = lhs + rhs;
         let subbed = lhs - rhs;
         let cross = lhs.cross(&rhs);
@@ -353,14 +336,14 @@ mod tests {
         let float_scale_div = rhs / 2.5;
         let unit = lhs.unit();
 
-        assert_eq!(added, Vec2::from_ints(4, 7));
-        assert_eq!(subbed, Vec2::from_ints(-2, -3));
-        assert_eq!(cross, Vec3::from_ints(0, 0, -1));
+        assert_eq!(added, Vec2::new(4.0, 7.0));
+        assert_eq!(subbed, Vec2::new(-2.0, -3.0));
+        assert_eq!(cross, Vec3::new(0.0, 0.0, -1.0));
         assert!(float_near(dot, 13.0));
         assert!(float_near(mag, 5.830951));
         assert!(float_near(angle, 1.107148));
         // assert!(float_near(between, 0.997054));
-        assert_eq!(int_scale_mult, Vec2::from_ints(2, 4));
+        assert_eq!(int_scale_mult, Vec2::new(2.0, 4.0));
         assert_eq!(int_scale_div, Vec2::new(0.5, 1.0));;
         assert_eq!(float_scale_mult, Vec2::new(7.5, 12.5));
         assert_eq!(float_scale_div, Vec2::new(1.2, 2.0));
@@ -375,7 +358,6 @@ mod tests {
         let mut trans = Mat4::translation(translation) * Mat4::scaling(scaling);
         let vec = Vec2::new(2.0, 5.0);
 
-        println!("{}", trans);
         let translated = trans * vec;
         assert_eq!(translated, Vec2::new(5.0, 12.0));
     }
