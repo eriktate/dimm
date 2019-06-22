@@ -15,7 +15,7 @@ impl Mat4 {
         ])
     }
 
-    pub fn translation(translation: Vec3) -> Mat4 {
+    pub fn translate(translation: Vec3) -> Mat4 {
         let mut mat = Mat4::identity().0;
         mat[3] += translation.x;
         mat[7] += translation.y;
@@ -24,7 +24,7 @@ impl Mat4 {
         Mat4(mat)
     }
 
-    pub fn scaling(scaling: Vec3) -> Mat4 {
+    pub fn scale(scaling: Vec3) -> Mat4 {
         let mut mat = Mat4::identity().0;
         mat[0] = scaling.x;
         mat[5] = scaling.y;
@@ -33,7 +33,21 @@ impl Mat4 {
         Mat4(mat)
     }
 
-    pub fn row(&self, row: usize) -> Vec4 {
+    // TODO (erik): This transformation can be hard coded.
+    pub fn transpose(&self) -> Mat4 {
+        let mut mat = Mat4::new();
+
+        for i in 0..4 {
+            mat[i * 4] = self[i];
+            mat[i * 4 + 1] = self[4 + i];
+            mat[i * 4 + 2] = self[8 + i];
+            mat[i * 4 + 3] = self[12 + i];
+        }
+
+        mat
+    }
+
+    fn row(&self, row: usize) -> Vec4 {
         Vec4::new(
             self[row * 4],
             self[row * 4 + 1],
@@ -42,7 +56,7 @@ impl Mat4 {
         )
     }
 
-    pub fn col(&self, column: usize) -> Vec4 {
+    fn col(&self, column: usize) -> Vec4 {
         Vec4::new(
             self[column],
             self[4 + column],
@@ -61,10 +75,10 @@ impl ops::Mul<Mat4> for Mat4 {
         let mut mat = Mat4::new();
 
         for i in 0..4 {
-            mat[i * 4] = rows[i].dot(&cols[0]);
-            mat[i * 4 + 1] = rows[i].dot(&cols[1]);
-            mat[i * 4 + 2] = rows[i].dot(&cols[2]);
-            mat[i * 4 + 3] = rows[i].dot(&cols[3]);
+            mat[i * 4] = rows[i].dot(cols[0]);
+            mat[i * 4 + 1] = rows[i].dot(cols[1]);
+            mat[i * 4 + 2] = rows[i].dot(cols[2]);
+            mat[i * 4 + 3] = rows[i].dot(cols[3]);
         }
 
         mat
@@ -77,10 +91,10 @@ impl<T: From<Vec4> + Into<Vec4>> ops::Mul<T> for Mat4 {
         let vec = rhs.into();
 
         T::from(Vec4::new(
-            self.row(0).dot(&vec),
-            self.row(1).dot(&vec),
-            self.row(2).dot(&vec),
-            self.row(3).dot(&vec),
+            self.row(0).dot(vec),
+            self.row(1).dot(vec),
+            self.row(2).dot(vec),
+            self.row(3).dot(vec),
         ))
     }
 }
@@ -109,5 +123,23 @@ impl std::fmt::Display for Mat4 {
             self.row(2),
             self.row(3)
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vector::{Vec2, Vec3};
+
+    #[test]
+    fn test_transformation() {
+        let translation = Vec3::new(1.0, 2.0, 0.0);
+        let scaling = Vec3::new(2.0, 2.0, 0.0);
+
+        let trans = Mat4::translate(translation) * Mat4::scale(scaling);
+        let vec = Vec2::new(2.0, 5.0);
+
+        let translated = trans * vec;
+        assert_eq!(translated, Vec2::new(5.0, 12.0));
     }
 }

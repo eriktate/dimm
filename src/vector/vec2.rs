@@ -3,6 +3,7 @@ use crate::vector::{Vec3, Vec4};
 use std::cmp;
 use std::ops;
 
+#[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct Vec2 {
     pub x: f32,

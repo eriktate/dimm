@@ -3,6 +3,7 @@ use crate::vector::{Vec2, Vec4};
 use std::cmp;
 use std::ops;
 
+#[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct Vec3 {
     pub x: f32,
@@ -15,19 +16,19 @@ impl Vec3 {
         Vec3 { x, y, z }
     }
 
-    pub fn dot(&self, rhs: &Vec3) -> f32 {
+    pub fn dot(self, rhs: Vec3) -> f32 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
     }
 
     pub fn cross(self, rhs: Vec3) -> Vec3 {
-        Vec3 {
-            x: self.y * rhs.z - self.z * rhs.y,
-            y: self.z * rhs.x - self.x * rhs.z,
-            z: self.x * rhs.y - self.y * rhs.x,
-        }
+        Vec3::new(
+            self.y * rhs.z - self.z * rhs.y,
+            self.z * rhs.x - self.x * rhs.z,
+            self.x * rhs.y - self.y * rhs.x,
+        )
     }
 
-    pub fn mag(&self) -> f32 {
+    pub fn mag(self) -> f32 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
 
@@ -36,39 +37,21 @@ impl Vec3 {
     }
 }
 
-impl ops::Add<Vec3> for Vec3 {
+impl<T: Into<Vec3>> ops::Add<T> for Vec3 {
     type Output = Vec3;
 
-    fn add(self, rhs: Vec3) -> Self::Output {
-        Vec3 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-        }
+    fn add(self, rhs: T) -> Self::Output {
+        let rhs = rhs.into();
+        Vec3::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
     }
 }
 
-impl ops::Add<Vec2> for Vec3 {
+impl<T: Into<Vec3>> ops::Sub<T> for Vec3 {
     type Output = Vec3;
 
-    fn add(self, rhs: Vec2) -> Self::Output {
-        self + Vec3::from(rhs)
-    }
-}
-
-impl ops::Sub<Vec3> for Vec3 {
-    type Output = Vec3;
-
-    fn sub(self, rhs: Vec3) -> Self::Output {
+    fn sub(self, rhs: T) -> Self::Output {
+        let rhs = rhs.into();
         Vec3::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
-    }
-}
-
-impl ops::Sub<Vec2> for Vec3 {
-    type Output = Vec3;
-
-    fn sub(self, rhs: Vec2) -> Self::Output {
-        self - Vec3::from(rhs)
     }
 }
 
@@ -147,7 +130,7 @@ mod tests {
         let vec2_added = lhs + Vec2::from(rhs);
         let vec2_subbed = lhs - Vec2::from(rhs);
         let cross = lhs.cross(rhs);
-        let dot = lhs.dot(&rhs);
+        let dot = lhs.dot(rhs);
         let mag = rhs.mag();
         // let between = lhs.between(&rhs);
         let int_scale_mult = lhs * 2;
@@ -158,6 +141,8 @@ mod tests {
 
         assert_eq!(added, Vec3::new(4.0, 7.0, 10.0));
         assert_eq!(subbed, Vec3::new(-2.0, -3.0, -4.0));
+        assert_eq!(vec2_added, Vec3::new(4.0, 7.0, 3.0));
+        assert_eq!(vec2_subbed, Vec3::new(-2.0, -3.0, 3.0));
         assert_eq!(cross, Vec3::new(-1.0, 2.0, -1.0));
         assert!(float_near(dot, 34.0));
         assert!(float_near(mag, 9.110433));
